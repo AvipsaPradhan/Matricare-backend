@@ -6,10 +6,21 @@ const jwt = require('jsonwebtoken');
 
 exports.signup = async (req, res) => {
   const { name, phone, password, dob } = req.body;
+  
   try {
+    // Check if the user with the same phone number already exists
+    const existingUser = await User.findOne({ phone });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User with this phone number already exists' });
+    }
+
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create a new user
     const user = new User({ name, phone, password: hashedPassword, dob });
     await user.save();
+
     res.status(201).send('User registered');
   } catch (error) {
     console.error('Error during user registration:', error);  // Log actual error for debugging
